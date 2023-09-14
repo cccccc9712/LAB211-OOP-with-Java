@@ -1,0 +1,42 @@
+public static void normalCalculator() {
+        double memory;
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter number: ");
+        memory = Checker.checkInputDouble();
+
+        while (true) {
+            System.out.print("Enter operator: ");
+            String operator = Checker.checkInputOperator();
+            
+            switch (operator) {
+                case "+":
+                    memory += inputNumber();
+                    break;
+                case "-":
+                    memory -= inputNumber();
+                    break;
+                case "*":
+                    memory *= inputNumber();
+                    break;
+                case "/":
+                    double denominator = inputNumber();
+                    if (denominator == 0) {
+                        System.err.println("Error: Division by zero is not allowed.");
+                        continue; // Skip this iteration and ask for operator again
+                    }
+                    memory /= denominator;
+                    break;
+                case "^":
+                    memory = Math.pow(memory, inputNumber());
+                    break;
+                case "=":
+                    System.out.println("Result: " + memory);
+                    return;
+                default:
+                    System.err.println("Error: Invalid operator");
+            }
+
+            System.out.println("Memory: " + memory);
+        }
+    }
