@@ -13,6 +13,9 @@ import java.util.Scanner;
  */
 public class Manager {
 
+    public static ArrayList<Fruit> list = new ArrayList<>();
+    public static Hashtable<String, ArrayList<Fruit>> htb = new Hashtable<>();
+
     public static void menu() {
         System.out.println("========== Fruit Shop Manager ==========");
         System.out.println("1 - Create Fruit.\n"
@@ -22,7 +25,7 @@ public class Manager {
         System.out.print("Please choose an option: ");
     }
 
-    public static ArrayList<Fruit> createFruit(ArrayList<Fruit> list) {
+    public static ArrayList<Fruit> createFruit() {
         System.out.println("Please input the fruit information!");
         String id;
         while (true) {
@@ -47,25 +50,19 @@ public class Manager {
         return list;
     }
 
-    public static void display(ArrayList<Fruit> list) {
-    while (true) {
-        createFruit(list);
-        System.out.print("Do you want to add more fruits?(Y/N): ");
-        Scanner sc = new Scanner(System.in);
-        String input = sc.next();
-        if (input.equalsIgnoreCase("N")) {
-            break;
-        } else if (!input.equalsIgnoreCase("Y")) {
-            System.out.println("Invalid input. Please enter 'Y' to continue or 'N' to stop.");
+    public static void display() {
+        while (true) {
+            createFruit();
+            System.out.print("Do you want to add more fruits?(Y/N): ");
+            if (!Checker.checkInputYN()) {
+                break;
+            }
         }
+
+        print();
     }
 
-    // Print the list of fruits after they have been added
-    print(list);
-}
-
-
-    private static void print(ArrayList<Fruit> list) {
+    private static void print() {
         if (list.isEmpty()) {
             System.err.println("List empty.");
             return;
@@ -83,51 +80,61 @@ public class Manager {
         }
         System.out.println("\n");
     }
-    
-    static void viewOrder(Hashtable<String, ArrayList<Order>> ht) {
-        for (String name : ht.keySet()) {
+
+    static void viewOrder() {
+        for (String name : htb.keySet()) {
             System.out.println("Customer: " + name);
-            ArrayList<Order> lo = ht.get(name);
+            ArrayList<Fruit> lo = htb.get(name);
             displayListOrder(lo);
         }
     }
 
-    static void shoppingStuff(ArrayList<Fruit> list, Hashtable<String, ArrayList<Order>> ht) {
-        //check list empty user can't buy
+    static void shoppingStuff() {
+        // Check if the list of fruits is empty
         if (list.isEmpty()) {
-            System.err.println("No have item.");
+            System.err.println("No items available for purchase.");
             return;
-        }
-        //loop until user don't want to buy continue
-        ArrayList<Order> lo = new ArrayList<>();
-        while (true) {
-            print(list);
-            System.out.print("Enter item: ");
-            int item = Checker.checkInputIntLimit(1, list.size());
-            Fruit fruit = getFruitByItem(list, item);
-            System.out.print("Enter quantity: ");
-            int quantity = Checker.checkInputIntLimit(1, fruit.getQuantity());
-            fruit.setQuantity(fruit.getQuantity() - quantity);
-            //check item exist or not
-            if (!Checker.checkItemExist(lo, fruit.getId())) {
-                updateOrder(lo, fruit.getId(), quantity);
-            } else {
-                lo.add(new Order(fruit.getId(), fruit.getName(),
-                        quantity, fruit.getPrice()));
+        } else {
+            // Create a list to store the customer's order
+            ArrayList<Fruit> listOrder = new ArrayList<>();
+
+            while (true) {
+                print();
+                System.out.print("Enter the item number you want to purchase: ");
+                int item = Checker.checkInputIntLimit(1, list.size());
+                Fruit selectedFruit = getFruitByIndex(list, item);
+
+                if (selectedFruit.getQuantity() == 0) {
+                    System.out.println("This item is out of stock.");
+                } else {
+                    System.out.print("Enter the quantity you want to purchase: ");
+                    int quantity = Checker.checkInputIntLimit(1, selectedFruit.getQuantity());
+
+                    // Update the selected fruit's quantity
+                    selectedFruit.setQuantity(selectedFruit.getQuantity() - quantity);
+
+                    // Check if the item already exists in the listOrder and update it
+                    updateOrder(listOrder, selectedFruit.getId(), quantity);
+                }
+
+                System.out.print("Do you want to continue shopping? (Y/N): ");
+                if (!Checker.checkInputYN()) {
+                    break;
+                }
             }
 
-            if (!Checker.checkInputYN()) {
-                break;
-            }
+            displayListOrder(listOrder);
+
+            // Ask for the customer's name and store the order
+            System.out.print("Enter your name: ");
+            String name = Checker.checkInputString();
+            htb.put(name, listOrder);
+
+            System.err.println("Order added successfully.");
         }
-        displayListOrder(lo);
-        System.out.print("Enter name: ");
-        String name = Checker.checkInputString();
-        ht.put(name, lo);
-        System.err.println("Add successfull");
     }
 
-    static Fruit getFruitByItem(ArrayList<Fruit> lf, int item) {
+    static Fruit getFruitByIndex(ArrayList<Fruit> lf, int item) {
         int countItem = 1;
         for (Fruit fruit : lf) {
             //check shop have item or not 
@@ -141,25 +148,43 @@ public class Manager {
         return null;
     }
 
-    static void displayListOrder(ArrayList<Order> lo) {
-        double total = 0;
+    static void displayListOrder(ArrayList<Fruit> customerOrders) {
+        System.out.println("========== Customer Orders ==========");
+
         System.out.printf("%15s%15s%15s%15s\n", "Product", "Quantity", "Price", "Amount");
-        for (Order order : lo) {
-            System.out.printf("%15s%15d%15.0f$%15.0f$\n", order.getFruitName(),
+
+        double customerTotal = 0;
+
+        for (Fruit order : customerOrders) {
+            System.out.printf("%15s%15d%15.2f$%15.2f$\n", order.getName(),
                     order.getQuantity(), order.getPrice(),
                     order.getPrice() * order.getQuantity());
-            total += order.getPrice() * order.getQuantity();
+            customerTotal += order.getPrice() * order.getQuantity();
         }
-        System.out.println("Total: " + total);
+
+        System.out.println("Total for this customer: " + customerTotal);
     }
 
-    //if order exist then update order
-    static void updateOrder(ArrayList<Order> lo, String id, int quantity) {
-        for (Order order : lo) {
-            if (order.getFruitId().equalsIgnoreCase(id)) {
+    static void updateOrder(ArrayList<Fruit> lo, String id, int quantity) {
+        for (Fruit order : lo) {
+            if (order.getId().equalsIgnoreCase(id)) {
                 order.setQuantity(order.getQuantity() + quantity);
                 return;
             }
         }
+
+        // If the order does not exist in the list, create a new one
+        Fruit newOrder = getFruitById(list, id);
+        newOrder.setQuantity(quantity);
+        lo.add(newOrder);
+    }
+
+    static Fruit getFruitById(ArrayList<Fruit> lf, String id) {
+        for (Fruit fruit : lf) {
+            if (fruit.getId().equalsIgnoreCase(id)) {
+                return new Fruit(fruit.getId(), fruit.getName(), fruit.getPrice(), 0, fruit.getOrigin());
+            }
+        }
+        return null;
     }
 }

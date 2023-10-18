@@ -77,8 +77,6 @@ public class Checker {
     }
     
     public static boolean checkInputYN() {
-        System.out.print("Do you want to continue (Y/N)? ");
-        //loop until user input correct
         while (true) {
             String result = checkInputString();
             //return true if user input y/Y
@@ -89,14 +87,14 @@ public class Checker {
             if (result.equalsIgnoreCase("N")) {
                 return false;
             }
-            System.err.println("Please input y/Y or n/N.");
+            System.err.println("Please input yes/Y or no/N.");
             System.out.print("Enter again: ");
         }
     }
     
-    public static boolean checkItemExist(ArrayList<Order> lo, String id) {
-        for (Order order : lo) {
-            if (order.getFruitId().equalsIgnoreCase(id)) {
+    public static boolean checkItemExist(ArrayList<Fruit> lo, String id) {
+        for (Fruit f : lo) {
+            if (f.getId().equalsIgnoreCase(id)) {
                 return false;
             }
         }

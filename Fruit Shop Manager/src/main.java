@@ -20,20 +20,18 @@ public class main {
     public static void main(String[] args) {
         // TODO code application logic here
         Scanner sc = new Scanner(System.in);
-        ArrayList<Fruit> list = new ArrayList<>();
-        Hashtable<String, ArrayList<Order>> ht = new Hashtable<>();
         while(true){
             Manager.menu();
             int choice = sc.nextInt();
             switch(choice){
                 case 1:
-                    Manager.display(list);
+                    Manager.display();
                     break;
                 case 2:
-                    Manager.viewOrder(ht);
+                    Manager.viewOrder();
                     break;
                 case 3:
-                    Manager.shoppingStuff(list, ht);
+                    Manager.shoppingStuff();
                     break;
                 case 4:
             }
